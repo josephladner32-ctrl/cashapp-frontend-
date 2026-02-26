@@ -3,296 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cash UI Production</title>
+<title>GreenPay</title>
+
+<!-- PWA setup -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00c244">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
-body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-overflow:hidden;
-}
-
-/* CONTAINER */
-.container{
-position:relative;
-width:100%;
-height:100vh;
-overflow:hidden;
-}
-
-/* SCREENS */
-.screen{
-position:absolute;
-width:100%;
-height:100%;
-top:0;
-left:100%;
-transition:0.35s ease;
-}
-
-.screen.active{
-left:0;
-}
-
-/* HOME */
-.home{
-background:#00D632;
-color:black;
-}
-
-.amount{
-text-align:center;
-font-size:90px;
-font-weight:700;
-margin-top:60px;
-}
-
-.keypad{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:35px;
-padding:40px 60px;
-font-size:28px;
-text-align:center;
-}
-
-.key{cursor:pointer;}
-
-.main-btn{
-margin:15px 25px;
-padding:18px;
-border-radius:40px;
-border:none;
-background:black;
-color:white;
-font-size:20px;
-width:calc(100% - 50px);
-}
-
-/* ACTIVITY */
-.activity{
-background:black;
-color:white;
-padding:20px;
-overflow-y:auto;
-}
-
-.tx{
-display:flex;
-justify-content:space-between;
-margin:20px 0;
-border-bottom:1px solid #222;
-padding-bottom:15px;
-}
-
-/* SEND/RECEIVE */
-.form{
-background:black;
-color:white;
-padding:20px;
-}
-
-input{
-width:100%;
-padding:15px;
-margin:10px 0;
-background:#111;
-border:none;
-color:white;
-font-size:18px;
-border-radius:10px;
-}
-
-/* NAV */
-.nav{
-position:fixed;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-padding:15px 0;
-font-size:22px;
-background:inherit;
-}
-
-/* SUCCESS */
-.success{
-text-align:center;
-font-size:60px;
-color:#00D632;
-margin-top:100px;
-display:none;
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;background:#000;color:white;}
+#splash{position:fixed;inset:0;background:#00c244;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:bold;z-index:10;}
+#login{display:none;height:100vh;display:flex;flex-direction:column;justify-content:center;padding:30px;}
+input{padding:15px;margin:10px 0;border-radius:10px;border:none;font-size:16px;}
+button{padding:15px;border-radius:30px;border:none;background:#00c244;color:white;font-size:16px;margin-top:10px;}
+#app{display:none;padding:20px;padding-bottom:90px;}
+.balance{font-size:50px;font-weight:bold;margin:20px 0;}
+.card{background:#111;padding:20px;border-radius:20px;margin-top:20px;}
+.tx{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #222;cursor:pointer;}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#000;display:flex;justify-content:space-around;padding:15px 0;border-top:1px solid #222;}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div id="splash">GreenPay</div>
 
-<!-- HOME -->
-<div id="home" class="screen home active">
-<div class="amount" id="amount">$0</div>
-
-<div class="keypad">
-<div class="key" onclick="add(1)">1</div>
-<div class="key" onclick="add(2)">2</div>
-<div class="key" onclick="add(3)">3</div>
-<div class="key" onclick="add(4)">4</div>
-<div class="key" onclick="add(5)">5</div>
-<div class="key" onclick="add(6)">6</div>
-<div class="key" onclick="add(7)">7</div>
-<div class="key" onclick="add(8)">8</div>
-<div class="key" onclick="add(9)">9</div>
-<div class="key">.</div>
-<div class="key" onclick="add(0)">0</div>
-<div class="key" onclick="back()">⌫</div>
+<!-- Login Screen -->
+<div id="login">
+<h2>Login</h2>
+<input id="username" placeholder="Username">
+<input type="password" placeholder="Password">
+<button onclick="login()">Login</button>
 </div>
 
-<button class="main-btn" onclick="goSend()">Pay</button>
-<button class="main-btn" style="background:white;color:black;" onclick="goReceive()">Request</button>
+<!-- App Screen -->
+<div id="app">
+<h2>Money</h2>
+<div class="balance" id="balance">$500.00</div>
 
-<div class="nav">
-<div onclick="show('home')">🏠</div>
-<div onclick="show('home')">$</div>
-<div onclick="show('activity')">🕒</div>
-</div>
+<div class="card">
+<h3>Add Money</h3>
+<input id="addAmount" placeholder="Amount">
+<button onclick="addMoney()">Add</button>
 </div>
 
-<!-- ACTIVITY -->
-<div id="activity" class="screen activity">
-<h2>Activity</h2>
+<div class="card">
+<h3>Send Money</h3>
+<input id="sendUser" placeholder="Recipient">
+<input id="sendAmount" placeholder="Amount">
+<button onclick="sendMoney()">Send</button>
+</div>
+
+<div class="card">
+<h3>Recent Activity</h3>
 <div id="history"></div>
+</div>
+</div>
 
 <div class="nav">
-<div onclick="show('home')">🏠</div>
-<div onclick="show('home')">$</div>
-<div onclick="show('activity')">🕒</div>
-</div>
-</div>
-
-<!-- SEND -->
-<div id="send" class="screen form">
-<h2>Send Money</h2>
-<input id="sendUser" placeholder="Name, $Cashtag, Phone, Email">
-<input id="sendNote" placeholder="Note (required)">
-<button class="main-btn" onclick="confirmSend()">Confirm</button>
-</div>
-
-<!-- RECEIVE -->
-<div id="receive" class="screen form">
-<h2>Request Money</h2>
-<input id="receiveUser" placeholder="From who?">
-<input id="receiveNote" placeholder="Note">
-<button class="main-btn" onclick="confirmReceive()">Request</button>
-</div>
-
-<!-- SUCCESS -->
-<div id="successScreen" class="screen form">
-<div class="success" id="successIcon">✔</div>
-</div>
-
+<div>🏠</div>
+<div>$</div>
+<div>🕒</div>
 </div>
 
 <script>
-let amount="";
-let balance=Number(localStorage.getItem("balance"))||500;
-let transactions=JSON.parse(localStorage.getItem("tx"))||[];
+// Persistent balance & history
+let balance = Number(localStorage.getItem("balance")) || 500;
+let historyData = JSON.parse(localStorage.getItem("history")) || [];
 
-updateHistory();
-
-function add(num){
-amount+=num;
-update();
-}
-
-function back(){
-amount=amount.slice(0,-1);
-update();
-}
-
-function update(){
-document.getElementById("amount").innerText="$"+(amount||0);
-}
-
-function show(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-}
-
-function goSend(){
-if(!amount) return alert("Enter amount");
-show("send");
-}
-
-function goReceive(){
-if(!amount) return alert("Enter amount");
-show("receive");
-}
-
-function confirmSend(){
-let user=document.getElementById("sendUser").value;
-if(!user) return alert("Enter recipient");
-
-balance-=Number(amount);
-transactions.unshift({
-type:"Sent",
-user:user,
-value:amount,
-date:new Date().toLocaleDateString()
-});
-
-save();
-showSuccess();
-}
-
-function confirmReceive(){
-let user=document.getElementById("receiveUser").value;
-if(!user) return alert("Enter sender");
-
-balance+=Number(amount);
-transactions.unshift({
-type:"Received",
-user:user,
-value:amount,
-date:new Date().toLocaleDateString()
-});
-
-save();
-showSuccess();
-}
-
-function showSuccess(){
-show("successScreen");
-document.getElementById("successIcon").style.display="block";
+// Splash screen
 setTimeout(()=>{
-amount="";
-update();
-updateHistory();
-show("activity");
-},1000);
+document.getElementById("splash").style.display="none";
+if(localStorage.getItem("loggedIn")){
+showApp();
+}else{
+document.getElementById("login").style.display="flex";
+}
+},1500);
+
+// Login
+function login(){
+localStorage.setItem("loggedIn",true);
+showApp();
 }
 
-function updateHistory(){
-let list=document.getElementById("history");
-list.innerHTML="";
-transactions.forEach(t=>{
-let div=document.createElement("div");
-div.className="tx";
-div.innerHTML=`
-<div>
-<b>${t.type} ${t.type==="Sent"?"to":"from"} ${t.user}</b><br>
-${t.date}
+// Show app
+function showApp(){
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+updateUI();
+}
+
+// Update UI
+function updateUI(){
+document.getElementById("balance").innerText="$"+balance.toFixed(2);
+let historyDiv=document.getElementById("history");
+historyDiv.innerHTML="";
+historyData.forEach((tx,index)=>{
+historyDiv.innerHTML+=`
+<div class="tx" onclick="openTx(${index})">
+<div>${tx.name}</div>
+<div>${tx.amount}</div>
 </div>
-<div>${t.type==="Sent"?"-":"+"}$${t.value}</div>
 `;
-list.appendChild(div);
 });
 }
 
+// Add / Send
+function addMoney(){
+let amt=Number(document.getElementById("addAmount").value);
+if(!amt) return;
+balance+=amt;
+historyData.unshift({name:"Deposit",amount:"+$"+amt});
+save();
+}
+
+function sendMoney(){
+let user=document.getElementById("sendUser").value;
+let amt=Number(document.getElementById("sendAmount").value);
+if(!user||!amt) return;
+balance-=amt;
+historyData.unshift({name:user,amount:"-$"+amt});
+save();
+}
+
+// Save
 function save(){
 localStorage.setItem("balance",balance);
-localStorage.setItem("tx",JSON.stringify(transactions));
+localStorage.setItem("history",JSON.stringify(historyData));
+updateUI();
+}
+
+// Open transaction detail
+function openTx(index){
+localStorage.setItem("txIndex",index);
+window.location.href="transaction.html";
+}
+
+// Register service worker
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("service-worker.js");
 }
 </script>
 
